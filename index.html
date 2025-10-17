@@ -1,0 +1,172 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎮 NeoForge Legends - MVP Demo</title>
+    <style>
+      body { margin: 0; padding: 0; background: linear-gradient(135deg, #0b0b0f 0%, #1a1a2e 100%); color: #00e0ff; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+      #hud { position: fixed; top: 10px; left: 10px; font-size: 14px; background: rgba(0,0,0,0.4); padding: 8px 12px; border: 1px solid #00e0ff33; border-radius: 6px; z-index: 100; }
+      #game { border: 2px solid #00e0ff; box-shadow: 0 0 20px rgba(0, 224, 255, 0.3); background: #0e0e14; }
+      .controls { margin-top: 12px; opacity: 0.8; font-size: 12px; text-align: center; max-width: 600px; }
+      .status { position: fixed; bottom: 10px; right: 10px; font-size: 10px; opacity: 0.6; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; }
+      h1 { margin-bottom: 20px; text-shadow: 0 0 10px rgba(0, 224, 255, 0.5); }
+    </style>
+  </head>
+  <body>
+    <h1>🎮 NeoForge Legends</h1>
+    <div id="hud">Score: <span id="score">0</span> | Pos: <span id="pos">0, 0</span> | HP: <span id="hp">100</span></div>
+    <canvas id="game" width="800" height="500"></canvas>
+    <div class="controls">
+      <strong>Controls:</strong> WASD or Arrow Keys to move • Space to boost • R to reset<br>
+      <strong>Goal:</strong> Move around to collect points. Cyan square = you. Avoid red squares!
+    </div>
+    <div class="status">MVP v0.1.0 | GitHub Pages | Built with ❤️</div>
+
+    <script>
+      const scoreEl = document.getElementById('score');
+      const posEl = document.getElementById('pos');
+      const hpEl = document.getElementById('hp');
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d');
+
+      // Game state
+      const player = { x: 0, y: 0, w: 24, h: 24, color: '#00e0ff', hp: 100, boost: 0 };
+      const enemies = [];
+      const keys = new Set();
+      let score = 0;
+      let gameTime = 0;
+
+      // Input
+      window.addEventListener('keydown', e => { e.preventDefault(); keys.add(e.code); });
+      window.addEventListener('keyup', e => { e.preventDefault(); keys.delete(e.code); });
+
+      // Reset game
+      window.addEventListener('keydown', e => {
+        if (e.code === 'KeyR') {
+          player.x = 0; player.y = 0; player.hp = 100; score = 0; gameTime = 0;
+          enemies.length = 0;
+        }
+      });
+
+      // Spawn enemies
+      function spawnEnemy() {
+        if (enemies.length < 5) {
+          enemies.push({
+            x: (Math.random() - 0.5) * 700,
+            y: (Math.random() - 0.5) * 400,
+            w: 16, h: 16,
+            vx: (Math.random() - 0.5) * 60,
+            vy: (Math.random() - 0.5) * 60,
+            color: '#ff4444'
+          });
+        }
+      }
+
+      function update(dt) {
+        gameTime += dt;
+        
+        // Spawn enemies over time
+        if (Math.random() < 0.01) spawnEnemy();
+        
+        // Player movement
+        const speed = keys.has('Space') ? 350 : 180;
+        let moved = false;
+        if (keys.has('ArrowLeft') || keys.has('KeyA')) { player.x -= speed * dt; moved = true; }
+        if (keys.has('ArrowRight') || keys.has('KeyD')) { player.x += speed * dt; moved = true; }
+        if (keys.has('ArrowDown') || keys.has('KeyS')) { player.y += speed * dt; moved = true; }
+        if (keys.has('ArrowUp') || keys.has('KeyW')) { player.y -= speed * dt; moved = true; }
+        
+        if (moved) {
+          score += Math.floor(dt * 15);
+          if (keys.has('Space')) score += Math.floor(dt * 5); // boost bonus
+        }
+
+        // Clamp player to canvas
+        player.x = Math.max(-canvas.width/2+player.w/2, Math.min(canvas.width/2-player.w/2, player.x));
+        player.y = Math.max(-canvas.height/2+player.h/2, Math.min(canvas.height/2-player.h/2, player.y));
+
+        // Update enemies
+        enemies.forEach(enemy => {
+          enemy.x += enemy.vx * dt;
+          enemy.y += enemy.vy * dt;
+          
+          // Bounce off walls
+          if (enemy.x < -canvas.width/2 || enemy.x > canvas.width/2) enemy.vx *= -1;
+          if (enemy.y < -canvas.height/2 || enemy.y > canvas.height/2) enemy.vy *= -1;
+          
+          // Collision with player
+          if (Math.abs(enemy.x - player.x) < (enemy.w + player.w)/2 && 
+              Math.abs(enemy.y - player.y) < (enemy.h + player.h)/2) {
+            player.hp -= 20;
+            enemy.x = (Math.random() - 0.5) * 600; // respawn enemy
+            enemy.y = (Math.random() - 0.5) * 400;
+          }
+        });
+        
+        // Game over
+        if (player.hp <= 0) {
+          player.hp = 0;
+          // Could add game over screen here
+        }
+      }
+
+      function render() {
+        ctx.save();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.translate(canvas.width/2, canvas.height/2);
+        
+        // Grid background
+        ctx.strokeStyle = '#1a2a3a'; 
+        ctx.lineWidth = 1;
+        for (let x = -400; x <= 400; x += 40) {
+          ctx.beginPath(); ctx.moveTo(x, -250); ctx.lineTo(x, 250); ctx.stroke();
+        }
+        for (let y = -240; y <= 240; y += 40) {
+          ctx.beginPath(); ctx.moveTo(-400, y); ctx.lineTo(400, y); ctx.stroke();
+        }
+        
+        // Enemies
+        enemies.forEach(enemy => {
+          ctx.fillStyle = enemy.color;
+          ctx.fillRect(enemy.x - enemy.w/2, enemy.y - enemy.h/2, enemy.w, enemy.h);
+        });
+        
+        // Player
+        ctx.fillStyle = player.hp > 50 ? player.color : '#ff8800'; // orange when low HP
+        ctx.fillRect(player.x - player.w/2, player.y - player.h/2, player.w, player.h);
+        
+        // Boost effect
+        if (keys.has('Space')) {
+          ctx.strokeStyle = player.color;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(player.x - player.w/2 - 4, player.y - player.h/2 - 4, player.w + 8, player.h + 8);
+        }
+        
+        ctx.restore();
+
+        // Update HUD
+        scoreEl.textContent = String(score);
+        posEl.textContent = `${Math.round(player.x)}, ${Math.round(player.y)}`;
+        hpEl.textContent = String(Math.max(0, Math.round(player.hp)));
+        hpEl.style.color = player.hp > 50 ? '#00ff88' : player.hp > 20 ? '#ffaa00' : '#ff4444';
+      }
+
+      // Game loop
+      let last = performance.now();
+      function loop(now) {
+        const dt = (now - last) / 1000;
+        last = now;
+        update(dt);
+        render();
+        requestAnimationFrame(loop);
+      }
+
+      // Start
+      spawnEnemy();
+      requestAnimationFrame(loop);
+      
+      console.log('🎮 NeoForge Legends MVP Demo loaded!');
+    </script>
+  </body>
+</html>
