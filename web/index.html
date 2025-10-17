@@ -6,124 +6,96 @@
     <link rel="manifest" href="/manifest.json" />
     <title>NeoForge Legends</title>
     <style>
-      body {
-        margin: 0;
-        padding: 0;
-        background: linear-gradient(135deg, #0b0b0f 0%, #1a1a2e 100%);
-        color: #00e0ff;
-        font-family: 'Courier New', monospace;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-      }
-      
-      #loading {
-        text-align: center;
-        padding: 20px;
-        animation: pulse 2s infinite;
-      }
-      
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-      }
-      
-      #bevy {
-        border: 2px solid #00e0ff;
-        box-shadow: 0 0 20px rgba(0, 224, 255, 0.3);
-        max-width: 100%;
-        max-height: 80vh;
-      }
-      
-      .controls {
-        margin-top: 20px;
-        text-align: center;
-        font-size: 14px;
-        opacity: 0.8;
-        max-width: 600px;
-        line-height: 1.5;
-      }
-      
-      .status {
-        margin-top: 10px;
-        font-size: 12px;
-        opacity: 0.6;
-      }
-      
-      .fallback {
-        background: rgba(255, 0, 0, 0.1);
-        border: 1px solid #ff4444;
-        padding: 20px;
-        border-radius: 8px;
-        margin-top: 20px;
-        text-align: center;
-      }
+      body { margin: 0; padding: 0; background: #0b0b0f; color: #00e0ff; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+      #hud { position: fixed; top: 10px; left: 10px; font-size: 14px; background: rgba(0,0,0,0.4); padding: 8px 12px; border: 1px solid #00e0ff33; border-radius: 6px; }
+      #game { border: 2px solid #00e0ff; box-shadow: 0 0 20px rgba(0, 224, 255, 0.3); background: #0e0e14; }
+      .controls { margin-top: 12px; opacity: 0.8; font-size: 12px; text-align: center; }
+      .badge { margin-left: 8px; font-size: 11px; padding: 2px 6px; border: 1px solid #00e0ff55; border-radius: 4px; }
     </style>
   </head>
   <body>
-    <div id="loading">
-      <h1>🎮 NeoForge Legends</h1>
-      <p>Initializing WASM Game Engine...</p>
-      <div class="status">MVP v0.1.0 | Built with Rust + Bevy</div>
-    </div>
-    
-    <canvas id="bevy" style="display: none;"></canvas>
-    
-    <div class="controls">
-      <p><strong>Controls:</strong> WASD or Arrow Keys to move around | Score increases with movement</p>
-      <p><strong>Goal:</strong> Explore the game world and collect points by moving your cyan player character</p>
-    </div>
-    
+    <div id="hud">🎮 NeoForge Legends <span id="mode" class="badge">Loading...</span><br>Score: <span id="score">0</span> | Pos: <span id="pos">0, 0</span></div>
+    <canvas id="game" width="800" height="500"></canvas>
+    <div class="controls">Controls: WASD / Arrow Keys • MVP demo. WASM runtime loads automatically when ready.</div>
+
     <script type="module">
-      async function initGame() {
+      const scoreEl = document.getElementById('score');
+      const posEl = document.getElementById('pos');
+      const modeEl = document.getElementById('mode');
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d');
+
+      let useFallback = true;
+
+      async function tryLoadWasm() {
         try {
-          // Check if WASM files exist
-          const wasmResponse = await fetch('./dist/neoforge_game.js');
-          if (!wasmResponse.ok) {
-            throw new Error('WASM files not found. Game is still building via CI pipeline.');
-          }
-          
+          const res = await fetch('./dist/neoforge_game.js', { cache: 'no-store' });
+          if (!res.ok) throw new Error('WASM bundle not found');
           const { default: init } = await import('./dist/neoforge_game.js');
           await init();
-          
-          document.getElementById('loading').style.display = 'none';
-          document.getElementById('bevy').style.display = 'block';
-          
-          console.log('🎮 NeoForge Legends WASM loaded successfully!');
-        } catch (err) {
-          console.error('Failed to initialize WASM:', err);
-          
-          document.getElementById('loading').innerHTML = `
-            <div class="fallback">
-              <h2>⚡ Building Game Engine</h2>
-              <p><strong>WASM compilation in progress...</strong></p>
-              <p>The game is currently being built by GitHub Actions CI pipeline.</p>
-              <p><strong>Refresh this page in 2-3 minutes!</strong></p>
-              <br>
-              <p><strong>For instant local play:</strong></p>
-              <code>git clone https://github.com/Gzeu/neoforge-legends.git</code><br>
-              <code>cargo run -p neoforge-game</code>
-              <br><br>
-              <p><em>Build Status: ${err.message}</em></p>
-            </div>
-          `;
+          useFallback = false;
+          modeEl.textContent = 'WASM';
+          modeEl.style.borderColor = '#00ff8855';
+          console.log('WASM runtime initialized');
+        } catch (e) {
+          useFallback = true;
+          modeEl.textContent = 'JS Fallback';
+          console.warn('Using JS fallback:', e.message);
         }
       }
-      
-      // Auto-retry every 30 seconds if failed
-      let retryCount = 0;
-      function tryInit() {
-        initGame().catch(() => {
-          if (retryCount < 10) {
-            retryCount++;
-            setTimeout(tryInit, 30000); // Retry in 30s
-          }
-        });
+
+      // Simple JS fallback loop
+      const player = { x: 0, y: 0, w: 24, h: 24, color: '#00e0ff' };
+      const keys = new Set();
+      let score = 0;
+
+      window.addEventListener('keydown', e => keys.add(e.code));
+      window.addEventListener('keyup', e => keys.delete(e.code));
+
+      function update(dt) {
+        const speed = 220;
+        let moved = false;
+        if (keys.has('ArrowLeft') || keys.has('KeyA')) { player.x -= speed * dt; moved = true; }
+        if (keys.has('ArrowRight') || keys.has('KeyD')) { player.x += speed * dt; moved = true; }
+        if (keys.has('ArrowUp') || keys.has('KeyW')) { player.y -= speed * dt; moved = true; }
+        if (keys.has('ArrowDown') || keys.has('KeyS')) { player.y += speed * dt; moved = true; }
+        if (moved) score += Math.floor(dt * 10);
+
+        // clamp to canvas
+        player.x = Math.max(-canvas.width/2+player.w/2, Math.min(canvas.width/2-player.w/2, player.x));
+        player.y = Math.max(-canvas.height/2+player.h/2, Math.min(canvas.height/2-player.h/2, player.y));
       }
-      
-      document.addEventListener('DOMContentLoaded', tryInit);
+
+      function render() {
+        ctx.save();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // center origin
+        ctx.translate(canvas.width/2, canvas.height/2);
+        // grid
+        ctx.strokeStyle = '#1a2a3a'; ctx.lineWidth = 1;
+        for (let x=-400; x<=400; x+=40) { ctx.beginPath(); ctx.moveTo(x, -250); ctx.lineTo(x, 250); ctx.stroke(); }
+        for (let y=-240; y<=240; y+=40) { ctx.beginPath(); ctx.moveTo(-400, y); ctx.lineTo(400, y); ctx.stroke(); }
+        // player
+        ctx.fillStyle = player.color;
+        ctx.fillRect(player.x - player.w/2, player.y - player.h/2, player.w, player.h);
+        ctx.restore();
+
+        scoreEl.textContent = String(score);
+        posEl.textContent = `${player.x.toFixed(0)}, ${player.y.toFixed(0)}`;
+      }
+
+      let last = performance.now();
+      function loop(now) {
+        const dt = (now - last) / 1000; last = now;
+        if (useFallback) update(dt);
+        render();
+        requestAnimationFrame(loop);
+      }
+
+      // boot
+      await tryLoadWasm();
+      setInterval(tryLoadWasm, 30000); // retry every 30s until WASM available
+      requestAnimationFrame(loop);
     </script>
   </body>
 </html>
