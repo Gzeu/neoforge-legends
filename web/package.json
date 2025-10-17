@@ -1,10 +1,11 @@
 {
   "name": "neoforge-legends-web",
   "version": "0.1.0",
+  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "dev": "vite dev --host",
+    "build": "echo 'Build handled by GitHub Actions WASM workflow'",
+    "preview": "vite preview --host",
     "serve": "python3 -m http.server 8000"
   },
   "devDependencies": {

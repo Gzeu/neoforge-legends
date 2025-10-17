@@ -9,7 +9,7 @@
       body {
         margin: 0;
         padding: 0;
-        background: #0b0b0f;
+        background: linear-gradient(135deg, #0b0b0f 0%, #1a1a2e 100%);
         color: #00e0ff;
         font-family: 'Courier New', monospace;
         display: flex;
@@ -22,11 +22,19 @@
       #loading {
         text-align: center;
         padding: 20px;
+        animation: pulse 2s infinite;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
       }
       
       #bevy {
         border: 2px solid #00e0ff;
         box-shadow: 0 0 20px rgba(0, 224, 255, 0.3);
+        max-width: 100%;
+        max-height: 80vh;
       }
       
       .controls {
@@ -34,24 +42,49 @@
         text-align: center;
         font-size: 14px;
         opacity: 0.8;
+        max-width: 600px;
+        line-height: 1.5;
+      }
+      
+      .status {
+        margin-top: 10px;
+        font-size: 12px;
+        opacity: 0.6;
+      }
+      
+      .fallback {
+        background: rgba(255, 0, 0, 0.1);
+        border: 1px solid #ff4444;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+        text-align: center;
       }
     </style>
   </head>
   <body>
     <div id="loading">
       <h1>🎮 NeoForge Legends</h1>
-      <p>Loading WASM engine...</p>
+      <p>Initializing WASM Game Engine...</p>
+      <div class="status">MVP v0.1.0 | Built with Rust + Bevy</div>
     </div>
     
     <canvas id="bevy" style="display: none;"></canvas>
     
     <div class="controls">
-      <p>Controls: WASD or Arrow Keys to move | Collect points by moving around</p>
+      <p><strong>Controls:</strong> WASD or Arrow Keys to move around | Score increases with movement</p>
+      <p><strong>Goal:</strong> Explore the game world and collect points by moving your cyan player character</p>
     </div>
     
     <script type="module">
       async function initGame() {
         try {
+          // Check if WASM files exist
+          const wasmResponse = await fetch('./dist/neoforge_game.js');
+          if (!wasmResponse.ok) {
+            throw new Error('WASM files not found. The game needs to be built first.');
+          }
+          
           const { default: init } = await import('./dist/neoforge_game.js');
           await init();
           
@@ -60,13 +93,26 @@
           
           console.log('🎮 NeoForge Legends WASM loaded successfully!');
         } catch (err) {
-          document.getElementById('loading').innerHTML = 
-            '<h2>❌ Failed to load game</h2><p>' + err.message + '</p>';
           console.error('Failed to initialize WASM:', err);
+          
+          document.getElementById('loading').innerHTML = `
+            <div class="fallback">
+              <h2>⚡ Development Mode</h2>
+              <p><strong>WASM build not ready yet!</strong></p>
+              <p>The game is currently building via GitHub Actions.</p>
+              <p>Please wait for the CI pipeline to complete and try refreshing in a few minutes.</p>
+              <br>
+              <p><strong>For local development:</strong></p>
+              <code>cargo run -p neoforge-game</code>
+              <br><br>
+              <p><strong>Error:</strong> ${err.message}</p>
+            </div>
+          `;
         }
       }
       
-      initGame();
+      // Show loading state immediately
+      document.addEventListener('DOMContentLoaded', initGame);
     </script>
   </body>
 </html>

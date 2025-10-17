@@ -1,9 +1,17 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "web/index.html", "use": "@vercel/static" }
-  ],
+  "buildCommand": "echo 'Static build - no build needed'",
+  "outputDirectory": "web",
   "routes": [
-    { "src": "/(.*)", "dest": "/web/index.html" }
+    { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" }
+      ]
+    }
   ]
 }
