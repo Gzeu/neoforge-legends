@@ -1,0 +1,20 @@
+name: CI
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with: { toolchain: stable }
+      - run: rustup target add wasm32-unknown-unknown
+      - run: cargo build --target wasm32-unknown-unknown --release
+      - run: cargo test
+      - name: Vercel Deploy
+        run: vercel deploy --prod
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      - name: Render Deploy
+        run: echo "Trigger Render deploy via API or CLI here"
+        env:
+          RENDER_TOKEN: ${{ secrets.RENDER_TOKEN }}
