@@ -4,11 +4,26 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = { workspace = true, default-features = false, features = ["bevy_winit", "bevy_gltf", "png"] }
+bevy = { workspace = true, default-features = false, features = [
+  "bevy_winit",
+  "bevy_render", 
+  "bevy_core_pipeline",
+  "bevy_sprite",
+  "bevy_text",
+  "bevy_ui",
+  "png",
+  "webgl2"
+] }
 neoforge-core = { path = "../core" }
+wasm-bindgen = { workspace = true }
+web-sys = { workspace = true }
 serde = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 
 [features]
-wasm = []
+default = []
+wasm = ["bevy/webgl2"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]

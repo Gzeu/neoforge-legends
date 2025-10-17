@@ -5,12 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="manifest" href="/manifest.json" />
     <title>NeoForge Legends</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background: #0b0b0f;
+        color: #00e0ff;
+        font-family: 'Courier New', monospace;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      
+      #loading {
+        text-align: center;
+        padding: 20px;
+      }
+      
+      #bevy {
+        border: 2px solid #00e0ff;
+        box-shadow: 0 0 20px rgba(0, 224, 255, 0.3);
+      }
+      
+      .controls {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 14px;
+        opacity: 0.8;
+      }
+    </style>
   </head>
   <body>
-    <div id="app">NeoForge Legends</div>
+    <div id="loading">
+      <h1>🎮 NeoForge Legends</h1>
+      <p>Loading WASM engine...</p>
+    </div>
+    
+    <canvas id="bevy" style="display: none;"></canvas>
+    
+    <div class="controls">
+      <p>Controls: WASD or Arrow Keys to move | Collect points by moving around</p>
+    </div>
+    
     <script type="module">
-      import init from './dist/neoforge_game.js';
-      init().then(() => console.log('WASM booted'));
+      async function initGame() {
+        try {
+          const { default: init } = await import('./dist/neoforge_game.js');
+          await init();
+          
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('bevy').style.display = 'block';
+          
+          console.log('🎮 NeoForge Legends WASM loaded successfully!');
+        } catch (err) {
+          document.getElementById('loading').innerHTML = 
+            '<h2>❌ Failed to load game</h2><p>' + err.message + '</p>';
+          console.error('Failed to initialize WASM:', err);
+        }
+      }
+      
+      initGame();
     </script>
   </body>
 </html>

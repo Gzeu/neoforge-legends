@@ -14,17 +14,36 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
+          components: rustfmt, clippy
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
       - name: Install wasm-bindgen-cli
-        run: cargo install wasm-bindgen-cli --version ^0.2.92 || true
-      - name: Build wasm
+        run: cargo install wasm-bindgen-cli --version ^0.2.92
+      - name: Build and check
         run: |
-          cargo build -p neoforge-game --release --target wasm32-unknown-unknown
+          cargo clippy --workspace --target wasm32-unknown-unknown -- -D warnings
+          cargo build -p neoforge-game --release --target wasm32-unknown-unknown --features wasm
+      - name: Generate WASM bindings
+        run: |
           mkdir -p web/dist
           wasm-bindgen --target web --no-typescript --out-dir web/dist target/wasm32-unknown-unknown/release/neoforge_game.wasm
+          ls -la web/dist/
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: web-dist
           path: web/dist
+  
+  deploy-preview:
+    if: github.event_name == 'pull_request'
+    needs: build-wasm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
+      - name: Deploy to preview
+        run: echo "Preview deployment ready"
