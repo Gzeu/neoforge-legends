@@ -3,6 +3,10 @@ name = "neoforge-game"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "neoforge_game"
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 bevy = { workspace = true, default-features = false, features = [
   "bevy_winit",
@@ -11,8 +15,7 @@ bevy = { workspace = true, default-features = false, features = [
   "bevy_sprite",
   "bevy_text",
   "bevy_ui",
-  "png",
-  "webgl2"
+  "png"
 ] }
 neoforge-core = { path = "../core" }
 wasm-bindgen = { workspace = true }
@@ -21,9 +24,11 @@ serde = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 
+[target.'cfg(target_arch = "wasm32")']
+dependencies = [
+  "bevy/webgl2"
+]
+
 [features]
 default = []
 wasm = ["bevy/webgl2"]
-
-[lib]
-crate-type = ["cdylib", "rlib"]

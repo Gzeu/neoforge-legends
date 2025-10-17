@@ -82,7 +82,7 @@
           // Check if WASM files exist
           const wasmResponse = await fetch('./dist/neoforge_game.js');
           if (!wasmResponse.ok) {
-            throw new Error('WASM files not found. The game needs to be built first.');
+            throw new Error('WASM files not found. Game is still building via CI pipeline.');
           }
           
           const { default: init } = await import('./dist/neoforge_game.js');
@@ -97,22 +97,33 @@
           
           document.getElementById('loading').innerHTML = `
             <div class="fallback">
-              <h2>⚡ Development Mode</h2>
-              <p><strong>WASM build not ready yet!</strong></p>
-              <p>The game is currently building via GitHub Actions.</p>
-              <p>Please wait for the CI pipeline to complete and try refreshing in a few minutes.</p>
+              <h2>⚡ Building Game Engine</h2>
+              <p><strong>WASM compilation in progress...</strong></p>
+              <p>The game is currently being built by GitHub Actions CI pipeline.</p>
+              <p><strong>Refresh this page in 2-3 minutes!</strong></p>
               <br>
-              <p><strong>For local development:</strong></p>
+              <p><strong>For instant local play:</strong></p>
+              <code>git clone https://github.com/Gzeu/neoforge-legends.git</code><br>
               <code>cargo run -p neoforge-game</code>
               <br><br>
-              <p><strong>Error:</strong> ${err.message}</p>
+              <p><em>Build Status: ${err.message}</em></p>
             </div>
           `;
         }
       }
       
-      // Show loading state immediately
-      document.addEventListener('DOMContentLoaded', initGame);
+      // Auto-retry every 30 seconds if failed
+      let retryCount = 0;
+      function tryInit() {
+        initGame().catch(() => {
+          if (retryCount < 10) {
+            retryCount++;
+            setTimeout(tryInit, 30000); // Retry in 30s
+          }
+        });
+      }
+      
+      document.addEventListener('DOMContentLoaded', tryInit);
     </script>
   </body>
 </html>
