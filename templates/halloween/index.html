@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeoForge Halloween</title>
+    <style>
+      body { margin: 0; background: radial-gradient(#0b0b0f,#130c1a); color: #ffb703; font-family: monospace; display: grid; place-items: center; height: 100vh; }
+      #hud { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 6px 10px; border: 1px solid #ffb70355; border-radius: 6px; font-size: 13px; }
+      canvas { border: 2px solid #ffb703; box-shadow: 0 0 20px #ffb70355; background: #0e0e14; }
+    </style>
+  </head>
+  <body>
+    <div id="hud">Candies: <span id="candies">0</span> | HP: <span id="hp">100</span></div>
+    <canvas id="c" width="800" height="500"></canvas>
+    <script>
+      const c=document.getElementById('c'),ctx=c.getContext('2d'); const k=new Set(); let hp=100,candies=0; 
+      const player={x:0,y:0,w:28,h:28,emoji:'🎃'}; const ghosts=[]; const candy=[];
+      addEventListener('keydown',e=>k.add(e.code)); addEventListener('keyup',e=>k.delete(e.code));
+      function spawnGhost(){ if(ghosts.length<6) ghosts.push({x:(Math.random()-0.5)*700,y:(Math.random()-0.5)*400,w:24,h:24,vx:(Math.random()-0.5)*70,vy:(Math.random()-0.5)*70}); }
+      function dropCandy(){ if(candy.length<5) candy.push({x:(Math.random()-0.5)*700,y:(Math.random()-0.5)*400,w:12,h:12}); }
+      function update(dt){ const s=180; if(k.has('KeyA')||k.has('ArrowLeft')) player.x-=s*dt; if(k.has('KeyD')||k.has('ArrowRight')) player.x+=s*dt; if(k.has('KeyW')||k.has('ArrowUp')) player.y-=s*dt; if(k.has('KeyS')||k.has('ArrowDown')) player.y+=s*dt;
+        player.x=Math.max(-c.width/2+14,Math.min(c.width/2-14,player.x)); player.y=Math.max(-c.height/2+14,Math.min(c.height/2-14,player.y));
+        if(Math.random()<0.01) spawnGhost(); if(Math.random()<0.02) dropCandy();
+        ghosts.forEach(g=>{g.x+=g.vx*dt; g.y+=g.vy*dt; if(g.x<-c.width/2||g.x>c.width/2) g.vx*=-1; if(g.y<-c.height/2||g.y>c.height/2) g.vy*=-1; if(Math.abs(g.x-player.x)<(g.w+player.w)/2 && Math.abs(g.y-player.y)<(g.h+player.h)/2){ hp-=10; g.x*=-0.8; g.y*=-0.8; }});
+        for(let i=candy.length-1;i>=0;i--){const a=candy[i]; if(Math.abs(a.x-player.x)<(a.w+player.w)/2 && Math.abs(a.y-player.y)<(a.h+player.h)/2){ candies++; candy.splice(i,1);} }
+        document.getElementById('hp').textContent=hp; document.getElementById('hp').style.color=hp>50?'#00ff88':hp>20?'#ffaa00':'#ff4444'; document.getElementById('candies').textContent=candies; }
+      function render(){ ctx.save(); ctx.clearRect(0,0,c.width,c.height); ctx.translate(c.width/2,c.height/2);
+        ctx.strokeStyle='#2a1a3a'; for(let x=-400;x<=400;x+=40){ctx.beginPath();ctx.moveTo(x,-250);ctx.lineTo(x,250);ctx.stroke()} for(let y=-240;y<=240;y+=40){ctx.beginPath();ctx.moveTo(-400,y);ctx.lineTo(400,y);ctx.stroke()}
+        // candies
+        candy.forEach(a=>{ctx.fillStyle='#ffb703'; ctx.fillRect(a.x-6,a.y-6,12,12);});
+        // ghosts
+        ghosts.forEach(g=>{ctx.fillStyle='#9b5de5'; ctx.fillRect(g.x-12,g.y-12,24,24);});
+        // pumpkin
+        ctx.font='24px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(player.emoji, player.x, player.y);
+        ctx.restore(); }
+      let last=performance.now(); function loop(now){const dt=(now-last)/1000; last=now; update(dt); render(); requestAnimationFrame(loop);} requestAnimationFrame(loop);
+    </script>
+  </body>
+</html>
