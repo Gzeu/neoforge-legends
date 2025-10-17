@@ -1,2 +1,3 @@
-# neoforge-legends
-NeoForge Legends - RPG open-world sandbox blockchain game MVP built with Rust, Bevy, WASM and MultiversX integration
+# NeoForge Legends
+
+MVP sprint repository for the open-world RPG sandbox built with Rust + Bevy, targeting WebAssembly and desktop. Includes CI, workspace layout, and deploy hooks.

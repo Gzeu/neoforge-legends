@@ -1,0 +1,14 @@
+[package]
+name = "neoforge-game"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = { workspace = true }
+neoforge-core = { path = "../core" }
+serde = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+[features]
+wasm = []
