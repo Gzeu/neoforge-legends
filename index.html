@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeoForge Legends - Templates Hub</title>
+    <style>
+      :root { --bg:#0b0b0f; --card:#11131a; --fg:#e6f7ff; --accent:#00e0ff; }
+      body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji"; background: radial-gradient(1000px 600px at 20% 0%, #0f1420, var(--bg)); color: var(--fg); }
+      header { padding: 28px 20px; display:flex; justify-content:space-between; align-items:center; max-width:1100px; margin:0 auto; }
+      .brand { font-weight:700; letter-spacing:0.5px; color: var(--accent); }
+      .grid { max-width:1100px; margin:20px auto 60px; padding:0 20px; display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:16px; }
+      .card { background: var(--card); border: 1px solid #1d2230; border-radius: 12px; padding:16px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); display:flex; flex-direction:column; gap:10px; }
+      .card h3 { margin:0; font-size:18px; color:#bfefff; }
+      .card p { margin:0; font-size:13px; opacity:0.8; line-height:1.4; }
+      .actions { margin-top:auto; display:flex; gap:8px; }
+      a.btn { display:inline-block; padding:8px 10px; font-size:13px; color:#001118; background: var(--accent); border-radius:8px; text-decoration:none; font-weight:600; }
+      a.link { font-size:13px; color:#bfefff; text-decoration:none; opacity:0.85; }
+      footer { max-width:1100px; margin:0 auto; padding:20px; opacity:0.7; font-size:12px; }
+      .note { background:#101522; border:1px dashed #2a3b55; padding:10px 12px; border-radius:8px; margin: 0 20px 24px; max-width:1100px; }
+      code { background:#0a0f1a; padding:2px 6px; border-radius:6px; color:#bfefff; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">🎮 NeoForge Legends · Templates</div>
+      <nav><a class="link" href="https://github.com/Gzeu/neoforge-legends">Repository</a></nav>
+    </header>
+
+    <div class="note">
+      Choose a template below. Each runs client-side only and is compatible with GitHub Pages. To publish a specific template at root, copy its <code>index.html</code> to the publishing branch root.
+    </div>
+
+    <section class="grid">
+      <div class="card">
+        <h3>Base Grid</h3>
+        <p>Minimal player movement and score on a clean grid background.</p>
+        <div class="actions">
+          <a class="btn" href="templates/base-grid/" target="_self">Open</a>
+          <a class="link" href="templates/base-grid/" target="_self">/templates/base-grid/</a>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Halloween</h3>
+        <p>Pumpkin avatar, ghosts, candies, and a spooky color palette.</p>
+        <div class="actions">
+          <a class="btn" href="templates/halloween/" target="_self">Open</a>
+          <a class="link" href="templates/halloween/" target="_self">/templates/halloween/</a>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Pets</h3>
+        <p>Choose dog/cat/fox avatars, collect treats, track hearts.</p>
+        <div class="actions">
+          <a class="btn" href="templates/pets/" target="_self">Open</a>
+          <a class="link" href="templates/pets/" target="_self">/templates/pets/</a>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Viral</h3>
+        <p>Meme avatars, likes counter, power-ups, and flashy effects.</p>
+        <div class="actions">
+          <a class="btn" href="templates/viral/" target="_self">Open</a>
+          <a class="link" href="templates/viral/" target="_self">/templates/viral/</a>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Fantasy</h3>
+        <p>Knight avatar vs slimes, coins, potions, and HP.</p>
+        <div class="actions">
+          <a class="btn" href="templates/fantasy/" target="_self">Open</a>
+          <a class="link" href="templates/fantasy/" target="_self">/templates/fantasy/</a>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Tip: To publish this hub as your GitHub Pages landing, point Pages to this branch and ensure this file is at the publishing root.
+    </footer>
+  </body>
+</html>
