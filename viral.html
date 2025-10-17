@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeoForge Viral</title>
+    <style>
+      body { margin: 0; background: #000; color: #fff; font-family: monospace; display: grid; place-items: center; height: 100vh; overflow: hidden; }
+      #hud { position: fixed; top: 10px; left: 10px; background: rgba(255,255,255,0.05); padding: 6px 10px; border: 1px solid #ffffff22; border-radius: 6px; font-size: 13px; }
+      canvas { border: 2px solid #ffffff33; box-shadow: 0 0 30px #ffffff22; background: #01010a; }
+    </style>
+  </head>
+  <body>
+    <div id="hud">Likes: <span id="likes">0</span> | Power: <span id="power">x1</span></div>
+    <canvas id="c" width="900" height="520"></canvas>
+    <script>
+      const c=document.getElementById('c'),ctx=c.getContext('2d'),k=new Set(); let likes=0,power=1,flash=0; const avatars=['🗿','🐸','💀','🦍','🦄']; let av='🗿';
+      addEventListener('keydown',e=>{k.add(e.code); if(e.code==='Digit1') av=avatars[0]; if(e.code==='Digit2') av=avatars[1]; if(e.code==='Digit3') av=avatars[2]; if(e.code==='Digit4') av=avatars[3]; if(e.code==='Digit5') av=avatars[4];}); addEventListener('keyup',e=>k.delete(e.code));
+      const player={x:0,y:0}; const orbs=[]; function spawnOrb(){ if(orbs.length<12) orbs.push({x:(Math.random()-0.5)*800,y:(Math.random()-0.5)*420,vx:(Math.random()-0.5)*80,vy:(Math.random()-0.5)*80}); }
+      function update(dt){ const s=220*power; if(k.has('KeyA')||k.has('ArrowLeft')) player.x-=s*dt; if(k.has('KeyD')||k.has('ArrowRight')) player.x+=s*dt; if(k.has('KeyW')||k.has('ArrowUp')) player.y-=s*dt; if(k.has('KeyS')||k.has('ArrowDown')) player.y+=s*dt; if(k.has('Space')){ power=Math.min(3,power+dt*0.5); flash=1; } else { power=Math.max(1,power-dt*0.3);} if(Math.random()<0.02) spawnOrb();
+        for(let i=orbs.length-1;i>=0;i--){const o=orbs[i]; o.x+=o.vx*dt; o.y+=o.vy*dt; if(Math.abs(o.x-player.x)<18&&Math.abs(o.y-player.y)<18){ likes+=Math.ceil(1*power); orbs.splice(i,1);} }
+        document.getElementById('likes').textContent=likes; document.getElementById('power').textContent=`x${power.toFixed(1)}`; }
+      function render(){ ctx.save(); ctx.clearRect(0,0,c.width,c.height); ctx.translate(c.width/2,c.height/2);
+        const g=ctx.createLinearGradient(-c.width/2,-c.height/2,c.width/2,c.height/2); g.addColorStop(0,'#12002a'); g.addColorStop(1,'#001a2a'); ctx.fillStyle=g; ctx.fillRect(-c.width/2,-c.height/2,c.width,c.height);
+        ctx.globalAlpha=0.06; for(let y=-260;y<=260;y+=4){ctx.fillStyle='#fff'; ctx.fillRect(-c.width/2,y,c.width,1);} ctx.globalAlpha=1;
+        orbs.forEach(o=>{ctx.fillStyle='#39ff14'; ctx.beginPath(); ctx.arc(o.x,o.y,8,0,Math.PI*2); ctx.fill();});
+        ctx.font='28px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(av, player.x, player.y);
+        if(flash>0){ ctx.globalAlpha=Math.min(0.3,flash); ctx.fillStyle='#ffffff'; ctx.fillRect(-c.width/2,-c.height/2,c.width,c.height); ctx.globalAlpha=1; flash*=0.92; }
+        ctx.restore(); }
+      let last=performance.now(); function loop(now){const dt=(now-last)/1000; last=now; update(dt); render(); requestAnimationFrame(loop);} requestAnimationFrame(loop);
+    </script>
+  </body>
+</html>

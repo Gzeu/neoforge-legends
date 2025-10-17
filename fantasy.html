@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeoForge Fantasy</title>
+    <style>
+      body { margin: 0; background: #0b0b0f; color: #c0ffee; font-family: monospace; display: grid; place-items: center; height: 100vh; }
+      #hud { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.4); padding: 6px 10px; border: 1px solid #c0ffee55; border-radius: 6px; font-size: 13px; }
+      canvas { border: 2px solid #c0ffee; box-shadow: 0 0 20px #c0ffee44; background: #0e0e14; }
+    </style>
+  </head>
+  <body>
+    <div id="hud">Coins: <span id="coins">0</span> | Potions: <span id="pots">0</span> | HP: <span id="hp">100</span></div>
+    <canvas id="c" width="860" height="520"></canvas>
+    <script>
+      const c=document.getElementById('c'),ctx=c.getContext('2d'),k=new Set(); let coins=0,pots=0,hp=100; const hero='🗡️',slime='🟩';
+      const player={x:0,y:0}; const drops=[]; const slimes=[];
+      addEventListener('keydown',e=>k.add(e.code)); addEventListener('keyup',e=>k.delete(e.code));
+      function spawnSlime(){ if(slimes.length<8) slimes.push({x:(Math.random()-0.5)*760,y:(Math.random()-0.5)*420,vx:(Math.random()-0.5)*60,vy:(Math.random()-0.5)*60}); }
+      function dropLoot(){ if(Math.random()<0.5) drops.push({x:(Math.random()-0.5)*760,y:(Math.random()-0.5)*420,type:Math.random()<0.7?'coin':'pot'}); }
+      function update(dt){ const s=200; if(k.has('KeyA')||k.has('ArrowLeft')) player.x-=s*dt; if(k.has('KeyD')||k.has('ArrowRight')) player.x+=s*dt; if(k.has('KeyW')||k.has('ArrowUp')) player.y-=s*dt; if(k.has('KeyS')||k.has('ArrowDown')) player.y+=s*dt;
+        if(Math.random()<0.02) spawnSlime(); if(Math.random()<0.02) dropLoot();
+        slimes.forEach(s=>{s.x+=s.vx*dt; s.y+=s.vy*dt; if(Math.abs(s.x-player.x)<18&&Math.abs(s.y-player.y)<18){hp-=5; s.vx*=-1; s.vy*=-1;}});
+        for(let i=drops.length-1;i>=0;i--){const d=drops[i]; if(Math.abs(d.x-player.x)<18&&Math.abs(d.y-player.y)<18){ if(d.type==='coin') coins++; else { pots++; hp=Math.min(100,hp+20);} drops.splice(i,1);} }
+        document.getElementById('coins').textContent=coins; document.getElementById('pots').textContent=pots; document.getElementById('hp').textContent=hp; }
+      function render(){ ctx.save(); ctx.clearRect(0,0,c.width,c.height); ctx.translate(c.width/2,c.height/2);
+        ctx.strokeStyle='#1a2a3a'; for(let x=-430;x<=430;x+=40){ctx.beginPath();ctx.moveTo(x,-260);ctx.lineTo(x,260);ctx.stroke()} for(let y=-260;y<=260;y+=40){ctx.beginPath();ctx.moveTo(-430,y);ctx.lineTo(430,y);ctx.stroke()}
+        drops.forEach(d=>{ if(d.type==='coin'){ctx.fillStyle='#ffd700'; ctx.beginPath(); ctx.arc(d.x,d.y,6,0,Math.PI*2); ctx.fill();} else {ctx.fillStyle='#aaffcc'; ctx.fillRect(d.x-6,d.y-6,12,12);} });
+        slimes.forEach(s=>{ ctx.font='20px serif'; ctx.fillText(slime,s.x,s.y);});
+        ctx.font='24px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(hero, player.x, player.y);
+        ctx.restore(); }
+      let last=performance.now(); function loop(now){const dt=(now-last)/1000; last=now; update(dt); render(); requestAnimationFrame(loop);} requestAnimationFrame(loop);
+    </script>
+  </body>
+</html>

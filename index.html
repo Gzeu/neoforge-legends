@@ -3,170 +3,137 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🎮 NeoForge Legends - MVP Demo</title>
+    <title>NeoForge Legends - Games Hub</title>
     <style>
-      body { margin: 0; padding: 0; background: linear-gradient(135deg, #0b0b0f 0%, #1a1a2e 100%); color: #00e0ff; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
-      #hud { position: fixed; top: 10px; left: 10px; font-size: 14px; background: rgba(0,0,0,0.4); padding: 8px 12px; border: 1px solid #00e0ff33; border-radius: 6px; z-index: 100; }
-      #game { border: 2px solid #00e0ff; box-shadow: 0 0 20px rgba(0, 224, 255, 0.3); background: #0e0e14; }
-      .controls { margin-top: 12px; opacity: 0.8; font-size: 12px; text-align: center; max-width: 600px; }
-      .status { position: fixed; bottom: 10px; right: 10px; font-size: 10px; opacity: 0.6; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; }
-      h1 { margin-bottom: 20px; text-shadow: 0 0 10px rgba(0, 224, 255, 0.5); }
+      :root { --bg:#0b0b0f; --card:#0f1220; --fg:#e6f7ff; --muted:#9fb6c2; --accent:#00e0ff; }
+      *{box-sizing:border-box}
+      body { margin:0; background: radial-gradient(1200px 700px at 10% -10%, #121935, var(--bg)); color: var(--fg); font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial; }
+      header { padding: 26px 20px; display:flex; gap:16px; justify-content:space-between; align-items:center; max-width:1200px; margin:0 auto; }
+      .brand { font-weight:800; letter-spacing:0.4px; color: var(--accent); text-shadow: 0 0 14px #00e0ff33; }
+      .desc { color: var(--muted); font-size:14px; }
+      main { max-width:1200px; margin: 0 auto; padding: 0 20px 40px; display:grid; grid-template-columns: 1.2fr 1fr; gap: 22px; }
+      @media (max-width: 1000px){ main{ grid-template-columns: 1fr; } }
+      .viewer { background: #0c1024; border:1px solid #1b2340; border-radius:14px; padding:12px; box-shadow: 0 10px 28px rgba(0,0,0,0.35); }
+      .viewer header { padding: 8px 10px; display:flex; align-items:center; gap:10px; justify-content:space-between; }
+      .pill { font-size:12px; color:#001118; background: var(--accent); padding: 4px 8px; border-radius:99px; font-weight:700; }
+      iframe { width:100%; height: 72vh; min-height: 480px; border: 1px solid #1b2340; border-radius: 10px; background:#000; }
+      .catalog { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:14px; align-content:flex-start; }
+      .card { background: var(--card); border:1px solid #1b2340; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px; box-shadow: 0 10px 24px rgba(0,0,0,0.25); }
+      .card h3 { margin:0; font-size:16px; color:#c9ecff; }
+      .card p { margin:0; font-size:12px; color: var(--muted); }
+      .tags { display:flex; gap:6px; flex-wrap:wrap; }
+      .tag { font-size:11px; padding:2px 6px; border:1px solid #2a3b55; border-radius:99px; color:#bfefff; }
+      .actions { display:flex; gap:8px; }
+      button, a.btn { cursor:pointer; border:1px solid #254a66; background:#0d1a26; color:#bfefff; padding:8px 10px; border-radius:8px; font-weight:600; font-size:13px; text-decoration:none; }
+      a.primary, button.primary { background: var(--accent); color:#001118; border-color: transparent; }
+      footer { max-width:1200px; margin:16px auto 40px; padding:0 20px; color: var(--muted); font-size:12px; }
     </style>
   </head>
   <body>
-    <h1>🎮 NeoForge Legends</h1>
-    <div id="hud">Score: <span id="score">0</span> | Pos: <span id="pos">0, 0</span> | HP: <span id="hp">100</span></div>
-    <canvas id="game" width="800" height="500"></canvas>
-    <div class="controls">
-      <strong>Controls:</strong> WASD or Arrow Keys to move • Space to boost • R to reset<br>
-      <strong>Goal:</strong> Move around to collect points. Cyan square = you. Avoid red squares!
-    </div>
-    <div class="status">MVP v0.1.0 | GitHub Pages | Built with ❤️</div>
+    <header>
+      <div>
+        <div class="brand">🎮 NeoForge Legends · Games Hub</div>
+        <div class="desc">Choose a game from the right. The viewer loads it inline so each game is different and isolated.</div>
+      </div>
+      <nav>
+        <a class="btn" href="https://github.com/Gzeu/neoforge-legends" target="_blank">Repository</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="viewer">
+        <header>
+          <div class="pill" id="current-title">Base Grid</div>
+          <div class="desc" id="current-path">/base-grid/</div>
+        </header>
+        <iframe id="game-frame" src="base-grid.html" title="Game Viewer" referrerpolicy="no-referrer"></iframe>
+      </section>
+
+      <aside class="catalog" id="catalog">
+        <!-- Cards will be populated by script -->
+      </aside>
+    </main>
+
+    <footer>
+      Tip: Published on GitHub Pages. Each game runs client-side and can be opened in a new tab if preferred.
+    </footer>
 
     <script>
-      const scoreEl = document.getElementById('score');
-      const posEl = document.getElementById('pos');
-      const hpEl = document.getElementById('hp');
-      const canvas = document.getElementById('game');
-      const ctx = canvas.getContext('2d');
-
-      // Game state
-      const player = { x: 0, y: 0, w: 24, h: 24, color: '#00e0ff', hp: 100, boost: 0 };
-      const enemies = [];
-      const keys = new Set();
-      let score = 0;
-      let gameTime = 0;
-
-      // Input
-      window.addEventListener('keydown', e => { e.preventDefault(); keys.add(e.code); });
-      window.addEventListener('keyup', e => { e.preventDefault(); keys.delete(e.code); });
-
-      // Reset game
-      window.addEventListener('keydown', e => {
-        if (e.code === 'KeyR') {
-          player.x = 0; player.y = 0; player.hp = 100; score = 0; gameTime = 0;
-          enemies.length = 0;
+      const games = [
+        {
+          id: 'base',
+          title: 'Base Grid',
+          file: 'base-grid.html',
+          desc: 'Minimal movement + score on a clean grid background.',
+          tags: ['minimal', 'grid', 'score']
+        },
+        {
+          id: 'halloween',
+          title: 'Halloween',
+          file: 'halloween.html',
+          desc: 'Pumpkin avatar, ghosts, candies, spooky palette.',
+          tags: ['seasonal', 'spooky', 'collect']
+        },
+        {
+          id: 'pets',
+          title: 'Pets',
+          file: 'pets.html',
+          desc: 'Choose dog/cat/fox avatars, collect treats, hearts.',
+          tags: ['avatars', 'collect', 'family']
+        },
+        {
+          id: 'viral',
+          title: 'Viral',
+          file: 'viral.html',
+          desc: 'Meme avatars, likes counter, power-ups, flashy effects.',
+          tags: ['memes', 'power-up', 'effects']
+        },
+        {
+          id: 'fantasy',
+          title: 'Fantasy',
+          file: 'fantasy.html',
+          desc: 'Knight vs slimes, coins, potions, HP.',
+          tags: ['rpg', 'collect', 'hp']
         }
-      });
+      ];
 
-      // Spawn enemies
-      function spawnEnemy() {
-        if (enemies.length < 5) {
-          enemies.push({
-            x: (Math.random() - 0.5) * 700,
-            y: (Math.random() - 0.5) * 400,
-            w: 16, h: 16,
-            vx: (Math.random() - 0.5) * 60,
-            vy: (Math.random() - 0.5) * 60,
-            color: '#ff4444'
-          });
-        }
+      const catalogEl = document.getElementById('catalog');
+      const frame = document.getElementById('game-frame');
+      const currentTitle = document.getElementById('current-title');
+      const currentPath = document.getElementById('current-path');
+
+      function setGame(file, title){
+        frame.src = file;
+        currentTitle.textContent = title;
+        currentPath.textContent = '/' + file.replace('.html', '/');
       }
 
-      function update(dt) {
-        gameTime += dt;
-        
-        // Spawn enemies over time
-        if (Math.random() < 0.01) spawnEnemy();
-        
-        // Player movement
-        const speed = keys.has('Space') ? 350 : 180;
-        let moved = false;
-        if (keys.has('ArrowLeft') || keys.has('KeyA')) { player.x -= speed * dt; moved = true; }
-        if (keys.has('ArrowRight') || keys.has('KeyD')) { player.x += speed * dt; moved = true; }
-        if (keys.has('ArrowDown') || keys.has('KeyS')) { player.y += speed * dt; moved = true; }
-        if (keys.has('ArrowUp') || keys.has('KeyW')) { player.y -= speed * dt; moved = true; }
-        
-        if (moved) {
-          score += Math.floor(dt * 15);
-          if (keys.has('Space')) score += Math.floor(dt * 5); // boost bonus
-        }
-
-        // Clamp player to canvas
-        player.x = Math.max(-canvas.width/2+player.w/2, Math.min(canvas.width/2-player.w/2, player.x));
-        player.y = Math.max(-canvas.height/2+player.h/2, Math.min(canvas.height/2-player.h/2, player.y));
-
-        // Update enemies
-        enemies.forEach(enemy => {
-          enemy.x += enemy.vx * dt;
-          enemy.y += enemy.vy * dt;
-          
-          // Bounce off walls
-          if (enemy.x < -canvas.width/2 || enemy.x > canvas.width/2) enemy.vx *= -1;
-          if (enemy.y < -canvas.height/2 || enemy.y > canvas.height/2) enemy.vy *= -1;
-          
-          // Collision with player
-          if (Math.abs(enemy.x - player.x) < (enemy.w + player.w)/2 && 
-              Math.abs(enemy.y - player.y) < (enemy.h + player.h)/2) {
-            player.hp -= 20;
-            enemy.x = (Math.random() - 0.5) * 600; // respawn enemy
-            enemy.y = (Math.random() - 0.5) * 400;
-          }
-        });
-        
-        // Game over
-        if (player.hp <= 0) {
-          player.hp = 0;
-          // Could add game over screen here
-        }
+      function cardTemplate(g){
+        const tagHtml = g.tags.map(t=>`<span class="tag">${t}</span>`).join('');
+        return `
+          <div class="card">
+            <h3>${g.title}</h3>
+            <p>${g.desc}</p>
+            <div class="tags">${tagHtml}</div>
+            <div class="actions">
+              <button class="primary" data-file="${g.file}" data-title="${g.title}">Play inline</button>
+              <a class="btn" href="${g.file}" target="_blank" rel="noopener">Open tab</a>
+            </div>
+          </div>
+        `;
       }
 
-      function render() {
-        ctx.save();
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.translate(canvas.width/2, canvas.height/2);
-        
-        // Grid background
-        ctx.strokeStyle = '#1a2a3a'; 
-        ctx.lineWidth = 1;
-        for (let x = -400; x <= 400; x += 40) {
-          ctx.beginPath(); ctx.moveTo(x, -250); ctx.lineTo(x, 250); ctx.stroke();
-        }
-        for (let y = -240; y <= 240; y += 40) {
-          ctx.beginPath(); ctx.moveTo(-400, y); ctx.lineTo(400, y); ctx.stroke();
-        }
-        
-        // Enemies
-        enemies.forEach(enemy => {
-          ctx.fillStyle = enemy.color;
-          ctx.fillRect(enemy.x - enemy.w/2, enemy.y - enemy.h/2, enemy.w, enemy.h);
-        });
-        
-        // Player
-        ctx.fillStyle = player.hp > 50 ? player.color : '#ff8800'; // orange when low HP
-        ctx.fillRect(player.x - player.w/2, player.y - player.h/2, player.w, player.h);
-        
-        // Boost effect
-        if (keys.has('Space')) {
-          ctx.strokeStyle = player.color;
-          ctx.lineWidth = 2;
-          ctx.strokeRect(player.x - player.w/2 - 4, player.y - player.h/2 - 4, player.w + 8, player.h + 8);
-        }
-        
-        ctx.restore();
-
-        // Update HUD
-        scoreEl.textContent = String(score);
-        posEl.textContent = `${Math.round(player.x)}, ${Math.round(player.y)}`;
-        hpEl.textContent = String(Math.max(0, Math.round(player.hp)));
-        hpEl.style.color = player.hp > 50 ? '#00ff88' : player.hp > 20 ? '#ffaa00' : '#ff4444';
+      function renderCatalog(){
+        catalogEl.innerHTML = games.map(cardTemplate).join('');
+        catalogEl.querySelectorAll('button[data-file]')
+          .forEach(btn => btn.addEventListener('click', () => setGame(btn.dataset.file, btn.dataset.title)));
       }
 
-      // Game loop
-      let last = performance.now();
-      function loop(now) {
-        const dt = (now - last) / 1000;
-        last = now;
-        update(dt);
-        render();
-        requestAnimationFrame(loop);
-      }
-
-      // Start
-      spawnEnemy();
-      requestAnimationFrame(loop);
-      
-      console.log('🎮 NeoForge Legends MVP Demo loaded!');
+      // Deep-link support: index.html?game=pets
+      const params = new URLSearchParams(location.search);
+      const initial = games.find(g => g.id === params.get('game')) || games[0];
+      setGame(initial.file, initial.title);
+      renderCatalog();
     </script>
   </body>
 </html>
