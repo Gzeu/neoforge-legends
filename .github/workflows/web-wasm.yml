@@ -1,0 +1,30 @@
+name: web-wasm
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli --version ^0.2.92 || true
+      - name: Build wasm
+        run: |
+          cargo build -p neoforge-game --release --target wasm32-unknown-unknown
+          mkdir -p web/dist
+          wasm-bindgen --target web --no-typescript --out-dir web/dist target/wasm32-unknown-unknown/release/neoforge_game.wasm
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist

@@ -9,7 +9,8 @@
   <body>
     <div id="app">NeoForge Legends</div>
     <script type="module">
-      console.log('NeoForge Legends web shell ready');
+      import init from './dist/neoforge_game.js';
+      init().then(() => console.log('WASM booted'));
     </script>
   </body>
 </html>

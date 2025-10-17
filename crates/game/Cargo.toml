@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = { workspace = true }
+bevy = { workspace = true, default-features = false, features = ["bevy_winit", "bevy_gltf", "png"] }
 neoforge-core = { path = "../core" }
 serde = { workspace = true }
 anyhow = { workspace = true }
